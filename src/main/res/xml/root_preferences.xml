@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ListPreference
+        android:defaultValue="Metrisk"
+        android:entries="@array/unit_system"
+        android:entryValues="@array/unit_system"
+        android:key="unit_preference"
+        android:title="Enheter"
+        app:useSimpleSummaryProvider="true" />
+
+    <ListPreference
+        android:defaultValue="Betong"
+        android:entries="@array/density_options"
+        android:entryValues="@array/density_options"
+        android:key="density_preference"
+        android:title="Tetthet"
+        app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+        android:key="custom_density"
+        android:title="Egendefinert tetthet (kg/m³)"
+        android:numeric="decimal"
+        android:visibility="gone" />
+
+</PreferenceScreen>
