@@ -306,11 +306,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    private fun updateResult(textResult: TextView, layoutKjerne: LinearLayout, layoutFirkant: LinearLayout, layoutTrekant: LinearLayout, spinnerDensity: Spinner, inputCustomDensity: EditText) {
+    private fun updateResult(textResult: TextView, layoutKjerne: LinearLayout, layoutFirkant: LinearLayout, layoutTrekant: LinearLayout) {
         // Hent tetthet fra spinner eller egendefinert felt
-        val density = when (spinnerDensity.selectedItem.toString()) {
-            getString(R.string.leca) -> 550.0
-            getString(R.string.custom_density) -> inputCustomDensity.text.toString().toDoubleOrNull() ?: 2400.0
+
+        val density = when (findViewById<Spinner>(R.id.spinner_density)?.selectedItem?.toString()) {
+            getString(R.string.leca) -> 1800.0
+            getString(R.string.custom_density) -> findViewById<EditText>(R.id.input_custom_density).text.toString().toDoubleOrNull() ?: 2400.0
             else -> 2400.0 // Standard for betong
         }
 
@@ -330,7 +331,7 @@ class MainActivity : AppCompatActivity() {
                     ""
                 }
             }
-                    layoutFirkant.visibility == View.VISIBLE -> {
+            layoutFirkant.visibility == View.VISIBLE -> {
                 val length = findViewById<EditText>(R.id.input_length).text.toString().toDoubleOrNull()
                 val width = findViewById<EditText>(R.id.input_width).text.toString().toDoubleOrNull()
                 val thickness = findViewById<EditText>(R.id.input_thickness).text.toString().toDoubleOrNull()
