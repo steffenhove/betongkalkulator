@@ -43,5 +43,16 @@
         <item>reply_all</item>
         <item>forward</item>
     </string-array>
+<string name="unit_system_title">Enhetssystem</string>
 
+<string-array name="unit_system_entries">
+    <item>Metrisk</item>
+    <item>Imperialsk</item>
+</string-array>
+
+<string-array name="unit_system_values">
+    <item>Metrisk</item>
+    <item>Imperialsk</item>
+</string-array>
+    
 </resources>
