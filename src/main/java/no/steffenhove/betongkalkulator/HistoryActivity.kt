@@ -10,6 +10,7 @@ import android.widget.AbsListView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
+import android.widget.TextView
 import android.widget.Toast
 import org.json.JSONArray
 import org.json.JSONException
@@ -26,7 +27,7 @@ class HistoryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_history)
 
-        historyListView = findViewById<ListView>(R.id.historyListView)
+        historyListView = findViewById(R.id.historyListView)
         history = getHistory().toMutableList()
 
         adapter = ArrayAdapter(this, android.R.layout.simple_list_item_activated_1, history)
@@ -110,26 +111,6 @@ class HistoryActivity : AppCompatActivity() {
         editor.remove("calculations")
         editor.apply()
     }
-    private fun deleteSelectedItems() {
-        val checkedItemPositions = historyListView.checkedItemPositions
-        val historyToRemove = mutableListOf<String>()
-
-        // Finn elementene som skal slettes
-        for (i in history.size - 1 downTo 0) {
-            if (checkedItemPositions.get(i)) {
-                historyToRemove.add(history[i])
-            }
-        }
-
-        // Fjern elementene fra listen
-        history.removeAll(historyToRemove)
-
-        // Lagre den oppdaterte historikken
-        saveHistory(history)
-
-        // Oppdater listen i brukergrensesnittet
-        adapter.notifyDataSetChanged()
-    }
 
     private fun saveHistory(history: MutableList<String>) {
         val prefs = getSharedPreferences("history", MODE_PRIVATE)
@@ -205,5 +186,27 @@ class HistoryActivity : AppCompatActivity() {
         } else {
             Toast.makeText(this, "Ingen elementer valgt for summering", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun deleteSelectedItems() {
+        val checkedItemPositions = historyListView.checkedItemPositions
+        val historyToRemove = mutableListOf<String>()
+
+        // Finn elementene som skal slettes
+        for (i in history.size - 1 downTo 0) {
+            if (checkedItemPositions.get(i)) {
+                historyToRemove.add(history[i])
+            }
+        }
+
+        // Fjern elementene fra listen
+        history.removeAll(historyToRemove)
+
+        // Lagre den oppdaterte historikken
+        saveHistory(history)
+
+        // Oppdater listen i brukergrensesnittet
+        adapter.notifyDataSetChanged()
+
     }
 }
