@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
     private lateinit var defaultPrefs: SharedPreferences
     private lateinit var unit: String
-    private var density: Double = 2400.0 // Standardverdi for betong
+    private var density: Double = 2400.0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
 
         // Hent lagrede verdier fra SharedPreferences
         val savedUnit = defaultPrefs.getString("unit_preference", "Metrisk")
-        val savedDensity = prefs.getString("density_preference", "Betong")
+        val savedDensity = prefs.getString("density_preference", getString(R.string.betong))
         val savedCustomDensity = prefs.getString("custom_density", "")
 
         // Sett standardvalg for enheter til cm hvis metrisk er valgt
@@ -151,6 +151,7 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     inputCustomDensity.visibility = View.GONE
                 }
+                updateResult(textResult, layoutKjerne, layoutFirkant, layoutTrekant, spinnerDensity, inputCustomDensity)
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -179,6 +180,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         buttonCalculate.setOnClickListener {
+            // Hent tetthet fra spinner eller egendefinert felt
             val density = when (spinnerDensity.selectedItem.toString()) {
                 getString(R.string.leca) -> 1800.0
                 getString(R.string.custom_density) -> inputCustomDensity.text.toString().toDoubleOrNull() ?: 2400.0
@@ -203,27 +205,15 @@ class MainActivity : AppCompatActivity() {
                 val volume = calculateCylinderVolume(diameterInMeters, heightInMeters)
                 val weight = calculateWeight(volume, density)
 
-                val resultText = String.format(
-                    Locale.ROOT,
-                    "Volum: %.2f m³\nVekt: %.0f kg",
-                    volume,
-                    weight
-                )
+                val resultText = String.format(Locale.ROOT, "Volum: %.2f m³\nVekt: %.0f kg", volume, weight)
                 textResult.text = resultText
                 if (weight >= 1000) {
                     val weightInTons = weight / 1000
-                    textResult.append(
-                        String.format(
-                            Locale.ROOT,
-                            " (%.1f tonn)",
-                            weightInTons
-                        )
-                    )
+                    textResult.append(String.format(Locale.ROOT, " (%.1f tonn)", weightInTons))
                 }
 
                 // Lagre beregningen til historikk
-                val dimensions =
-                    String.format("Diameter: %.0f %s, Høyde: %.0f %s", diameter, diameterUnit, height, heightUnit)
+                val dimensions = String.format("Diameter: %.0f %s, Høyde: %.0f %s", diameter, diameterUnit, height, heightUnit)
                 saveCalculationToHistory(volume, weight, "Kjerne", dimensions)
 
             } else if (layoutFirkant.visibility == View.VISIBLE) {
@@ -316,11 +306,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    private fun updateResult(textResult: TextView, layoutKjerne: LinearLayout, layoutFirkant: LinearLayout, layoutTrekant: LinearLayout) {
-        // Denne funksjonen oppdaterer resultatet basert på gjeldende verdier i inputfeltene
-        val density = when (findViewById<Spinner>(R.id.spinner_density).selectedItem.toString()) {
-            getString(R.string.leca) -> 1800.0
-            getString(R.string.custom_density) -> findViewById<EditText>(R.id.input_custom_density).text.toString().toDoubleOrNull() ?: 2400.0
+    private fun updateResult(textResult: TextView, layoutKjerne: LinearLayout, layoutFirkant: LinearLayout, layoutTrekant: LinearLayout, spinnerDensity: Spinner, inputCustomDensity: EditText) {
+        // Hent tetthet fra spinner eller egendefinert felt
+        val density = when (spinnerDensity.selectedItem.toString()) {
+            getString(R.string.leca) -> 550.0
+            getString(R.string.custom_density) -> inputCustomDensity.text.toString().toDoubleOrNull() ?: 2400.0
             else -> 2400.0 // Standard for betong
         }
 
@@ -340,7 +330,7 @@ class MainActivity : AppCompatActivity() {
                     ""
                 }
             }
-            layoutFirkant.visibility == View.VISIBLE -> {
+                    layoutFirkant.visibility == View.VISIBLE -> {
                 val length = findViewById<EditText>(R.id.input_length).text.toString().toDoubleOrNull()
                 val width = findViewById<EditText>(R.id.input_width).text.toString().toDoubleOrNull()
                 val thickness = findViewById<EditText>(R.id.input_thickness).text.toString().toDoubleOrNull()
