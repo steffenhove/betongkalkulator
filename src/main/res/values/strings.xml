@@ -7,15 +7,6 @@
     <string name="clear_history">Slett historikk</string>
     <string name="custom_density_hint">Skriv inn egendefinert tetthet i kg/m³</string>
 
-    <string name="messages_header">Meldinger</string>
-    <string name="signature_title">Signatur</string>
-    <string name="reply_title">Standardsvar</string>
-    <string name="sync_header">Synkronisering</string>
-    <string name="sync_title">Synkroniser e-post</string>
-    <string name="attachment_summary_off">Ikke last ned vedlegg automatisk</string>
-    <string name="attachment_summary_on">Last ned vedlegg automatisk</string>
-    <string name="attachment_title">Last ned vedlegg</string>
-
     <string-array name="unit_options">
         <item>mm</item>
         <item>cm</item>
