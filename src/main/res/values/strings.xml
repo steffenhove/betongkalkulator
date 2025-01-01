@@ -28,7 +28,7 @@
 
     <string-array name="density_options">
         <item>Betong</item>
-        <item>Lettbetong</item>
+       <item>Leca (Lettbetong)</item>
         <item>Egendefinert</item>
     </string-array>
 
