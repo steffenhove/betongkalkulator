@@ -5,6 +5,7 @@
     <string name="history">Historikk</string>
     <string name="settings">Innstillinger</string>
     <string name="clear_history">Slett historikk</string>
+    <string name="custom_density_hint">Skriv inn egendefinert tetthet i kg/m³</string>
 
     <string name="messages_header">Meldinger</string>
     <string name="signature_title">Signatur</string>
