@@ -22,14 +22,13 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import org.json.JSONArray
 import org.json.JSONObject
+import java.text.DecimalFormat
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var prefs: SharedPreferences
     private lateinit var defaultPrefs: SharedPreferences
-    private lateinit var unit: String
     private var density: Double = 2400.0
-    private var unitSystem: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,21 +82,9 @@ class MainActivity : AppCompatActivity() {
         val inputCustomDensity = findViewById<EditText>(R.id.input_custom_density)
 
         // Hent lagrede verdier fra SharedPreferences
-        unitSystem = defaultPrefs.getString("unit_system_preference", "Metrisk")
+        val savedUnit = defaultPrefs.getString("unit_system_preference", "Metrisk")
         val savedDensity = prefs.getString("density_preference", getString(R.string.betong))
         val savedCustomDensity = prefs.getString("custom_density", "")
-
-        // Sett standardvalg for enheter til cm hvis metrisk er valgt
-        val unitSelectionIndex = if (unitSystem == "Metrisk") 1 else 0 // 0 for mm (eller tommer), 1 for cm
-        spinnerDiameterUnit.setSelection(unitSelectionIndex)
-        spinnerHeightUnit.setSelection(unitSelectionIndex)
-        spinnerLengthUnit.setSelection(unitSelectionIndex)
-        spinnerWidthUnit.setSelection(unitSelectionIndex)
-        spinnerThicknessUnit.setSelection(unitSelectionIndex)
-        spinnerSideAUnit.setSelection(unitSelectionIndex)
-        spinnerSideBUnit.setSelection(unitSelectionIndex)
-        spinnerSideCUnit.setSelection(unitSelectionIndex)
-        spinnerThicknessTriangleUnit.setSelection(unitSelectionIndex)
 
         // Sett standardvalg for tetthet
         val densityAdapter = ArrayAdapter.createFromResource(
@@ -125,7 +112,41 @@ class MainActivity : AppCompatActivity() {
             inputSideA, inputSideB, inputSideC, inputThicknessTriangle
         )
         for (field in inputFields) {
-            field.addTextChangedListener { updateResult(textResult, layoutKjerne, layoutFirkant, layoutTrekant) }
+            field.addTextChangedListener {
+                updateResult(
+                    textResult,
+                    layoutKjerne,
+                    layoutFirkant,
+                    layoutTrekant
+                )
+            }
+        }
+
+        // Lytt til endringer i enhetsvelgerne
+        val unitSpinners = listOf(
+            spinnerDiameterUnit, spinnerHeightUnit, spinnerLengthUnit, spinnerWidthUnit,
+            spinnerThicknessUnit, spinnerSideAUnit, spinnerSideBUnit, spinnerSideCUnit, spinnerThicknessTriangleUnit
+        )
+        val unitSelectionIndex = if (savedUnit == "Metrisk") 1 else 0 // 0 for mm, 1 for cm (eller tommer)
+        for (spinner in unitSpinners) {
+            spinner.setSelection(unitSelectionIndex)
+            spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    updateResult(
+                        textResult,
+                        layoutKjerne,
+                        layoutFirkant,
+                        layoutTrekant
+                    )
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
+            }
         }
 
         // Spinner for valg av tetthet
@@ -139,6 +160,7 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     inputCustomDensity.visibility = View.GONE
                 }
+                updateResult(textResult, layoutKjerne, layoutFirkant, layoutTrekant)
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -168,7 +190,11 @@ class MainActivity : AppCompatActivity() {
 
         buttonCalculate.setOnClickListener {
             // Hent tetthet fra spinner eller egendefinert felt
-
+            this.density = when (spinnerDensity.selectedItem.toString()) {
+                getString(R.string.leca) -> 1800.0
+                getString(R.string.custom_density) -> inputCustomDensity.text.toString().toDoubleOrNull() ?: 2400.0
+                else -> 2400.0 // Standard for betong
+            }
             if (layoutKjerne.visibility == View.VISIBLE) {
                 // Kjerne-beregning
                 val diameter = inputDiameter.text.toString().toDoubleOrNull()
@@ -196,7 +222,13 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 // Lagre beregningen til historikk
-                val dimensions = String.format("Diameter: %.0f %s, Høyde: %.0f %s", diameter, diameterUnit, height, heightUnit)
+                val unitSystem = defaultPrefs.getString("unit_system_preference", "Metrisk")
+                val dimensions = if (unitSystem == "Imperialsk") {
+                    String.format("Diameter: %.1f tommer, Høyde: %.1f tommer", diameter, height)
+                } else {
+                    String.format("Diameter: %.0f %s, Høyde: %.0f %s", diameter, diameterUnit, height, heightUnit)
+                }
+
                 saveCalculationToHistory(volume, weight, "Kjerne", dimensions)
 
             } else if (layoutFirkant.visibility == View.VISIBLE) {
@@ -238,7 +270,10 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 // Lagre beregningen til historikk
-                val dimensions =
+                val unitSystem = defaultPrefs.getString("unit_system_preference", "Metrisk")
+                val dimensions = if(unitSystem == "Imperialsk") {
+                    String.format("Lengde: %.1f tommer, Bredde: %.1f tommer, Tykkelse: %.1f tommer", length, width, thickness)
+                } else {
                     String.format(
                         "Lengde: %.0f %s, Bredde: %.0f %s, Tykkelse: %.0f %s",
                         length,
@@ -248,6 +283,8 @@ class MainActivity : AppCompatActivity() {
                         thickness,
                         thicknessUnit
                     )
+                }
+
                 saveCalculationToHistory(volume, weight, "Firkant", dimensions)
 
             } else if (layoutTrekant.visibility == View.VISIBLE) {
@@ -284,7 +321,22 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 // Lagre beregningen til historikk
-                val dimensions = String.format("Side A: %.0f %s, Side B: %.0f %s, Side C: %.0f %s, Tykkelse: %.0f %s", sideA, sideAUnit, sideB, sideBUnit, sideC, sideCUnit, thickness, thicknessUnit)
+                val unitSystem = defaultPrefs.getString("unit_system_preference", "Metrisk")
+                val dimensions = if(unitSystem == "Imperialsk") {
+                    String.format("Side A: %.1f tommer, Side B: %.1f tommer, Side C: %.1f tommer, Tykkelse: %.1f tommer", sideA, sideB, sideC, thickness)
+                } else {
+                    String.format(
+                        "Side A: %.0f %s, Side B: %.0f %s, Side C: %.0f %s, Tykkelse: %.0f %s",
+                        sideA,
+                        sideAUnit,
+                        sideB,
+                        sideBUnit,
+                        sideC,
+                        sideCUnit,
+                        thickness,
+                        thicknessUnit
+                    )
+                }
                 saveCalculationToHistory(volume, weight, "Trekant", dimensions)
             }
         }
@@ -301,7 +353,7 @@ class MainActivity : AppCompatActivity() {
             // Konverter fra mm, cm, eller m til meter
             when (unit) {
                 "mm" -> value / 1000
-                "cm" -> value /
+                "cm" -> value / 100
                 "m" -> value
                 else -> {
                     Log.e("ConvertToMeters", "Ukjent enhet: $unit")
@@ -357,7 +409,7 @@ class MainActivity : AppCompatActivity() {
     private fun saveCalculationToHistory(volume: Double, weight: Double, shape: String, dimensions: String) {
         val prefs = getSharedPreferences("history", Context.MODE_PRIVATE)
         val editor = prefs.edit()
-        val currentHistory = prefs.getString("calculations", "[]")
+        val currentHistory = prefs.getString("calculations", "[]") // Endret til å hente en JSON-array som en streng
         val jsonArray = try {
             JSONArray(currentHistory)
         } catch (e: Exception) {
@@ -396,10 +448,9 @@ class MainActivity : AppCompatActivity() {
 
         Log.d("History", "Saved calculation: $newCalculation")
     }
-
-
     private fun updateResult(textResult: TextView, layoutKjerne: LinearLayout, layoutFirkant: LinearLayout, layoutTrekant: LinearLayout) {
         // Hent tetthet fra spinner eller egendefinert felt
+
         val density = when (findViewById<Spinner>(R.id.spinner_density).selectedItem.toString()) {
             getString(R.string.leca) -> 1800.0
             getString(R.string.custom_density) -> findViewById<EditText>(R.id.input_custom_density).text.toString().toDoubleOrNull() ?: 2400.0
@@ -407,18 +458,20 @@ class MainActivity : AppCompatActivity() {
         }
 
         val unitSystem = defaultPrefs.getString("unit_system_preference", "Metrisk")
-        val unit = if (unitSystem == "Imperialsk") "tommer" else "cm"
 
         val resultText = when {
             layoutKjerne.visibility == View.VISIBLE -> {
                 val diameter = findViewById<EditText>(R.id.input_diameter).text.toString().toDoubleOrNull()
                 val height = findViewById<EditText>(R.id.input_height).text.toString().toDoubleOrNull()
                 if (diameter != null && height != null) {
-                    val diameterInMeters = convertToMeters(diameter, unit)
-                    val heightInMeters = convertToMeters(height, unit)
+                    val diameterUnit = findViewById<Spinner>(R.id.spinner_diameter_unit).selectedItem.toString()
+                    val heightUnit = findViewById<Spinner>(R.id.spinner_height_unit).selectedItem.toString()
+                    val diameterInMeters = convertToMeters(diameter, diameterUnit)
+                    val heightInMeters = convertToMeters(height, heightUnit)
                     val volume = calculateCylinderVolume(diameterInMeters, heightInMeters)
-                    val weight = calculateWeight(volume, density)
-                    String.format(Locale.ROOT, "Volum: %.2f m³\nVekt: %.0f kg", volume, weight) + if (weight >= 1000) String.format(Locale.ROOT, " (%.1f tonn)", weight / 1000) else ""
+                    val weight = calculateWeight(volume)
+                    val unit = if(unitSystem == "Imperialsk") "tommer" else "cm"
+                    String.format(Locale.ROOT, "Volum: %.2f m³\nVekt: %.0f kg\nDiameter: %.0f %s\nHøyde: %.0f %s", volume, weight, diameter, diameterUnit, height, heightUnit) + if (weight >= 1000) String.format(Locale.ROOT, " (%.1f tonn)", weight / 1000) else ""
                 } else {
                     ""
                 }
@@ -428,12 +481,16 @@ class MainActivity : AppCompatActivity() {
                 val width = findViewById<EditText>(R.id.input_width).text.toString().toDoubleOrNull()
                 val thickness = findViewById<EditText>(R.id.input_thickness).text.toString().toDoubleOrNull()
                 if (length != null && width != null && thickness != null) {
-                    val lengthInMeters = convertToMeters(length, unit)
-                    val widthInMeters = convertToMeters(width, unit)
-                    val thicknessInMeters = convertToMeters(thickness, unit)
+                    val lengthUnit = findViewById<Spinner>(R.id.spinner_length_unit).selectedItem.toString()
+                    val widthUnit = findViewById<Spinner>(R.id.spinner_width_unit).selectedItem.toString()
+                    val thicknessUnit = findViewById<Spinner>(R.id.spinner_thickness_unit).selectedItem.toString()
+                    val lengthInMeters = convertToMeters(length, lengthUnit)
+                    val widthInMeters = convertToMeters(width, widthUnit)
+                    val thicknessInMeters = convertToMeters(thickness, thicknessUnit)
                     val volume = calculateBoxVolume(lengthInMeters, widthInMeters, thicknessInMeters)
-                    val weight = calculateWeight(volume, density)
-                    String.format(Locale.ROOT, "Volum: %.2f m³\nVekt: %.0f kg", volume, weight) + if (weight >= 1000) String.format(Locale.ROOT, " (%.1f tonn)", weight / 1000) else ""
+                    val weight = calculateWeight(volume)
+                    val unit = if(unitSystem == "Imperialsk") "tommer" else "cm"
+                    String.format(Locale.ROOT, "Volum: %.2f m³\nVekt: %.0f kg\nLengde: %.0f %s\nBredde: %.0f %s\nTykkelse: %.0f %s", volume, weight, length, lengthUnit, width, widthUnit, thickness, thicknessUnit) + if (weight >= 1000) String.format(Locale.ROOT, " (%.1f tonn)", weight / 1000) else ""
                 } else {
                     ""
                 }
@@ -444,14 +501,19 @@ class MainActivity : AppCompatActivity() {
                 val sideC = findViewById<EditText>(R.id.input_side_c).text.toString().toDoubleOrNull()
                 val thickness = findViewById<EditText>(R.id.input_thickness_triangle).text.toString().toDoubleOrNull()
                 if (sideA != null && sideB != null && sideC != null && thickness != null) {
-                    val sideAInMeters = convertToMeters(sideA, unit)
-                    val sideBInMeters = convertToMeters(sideB, unit)
-                    val sideCInMeters = convertToMeters(sideC, unit)
-                    val thicknessInMeters = convertToMeters(thickness, unit)
+                    val sideAUnit = findViewById<Spinner>(R.id.spinner_side_a_unit).selectedItem.toString()
+                    val sideBUnit = findViewById<Spinner>(R.id.spinner_side_b_unit).selectedItem.toString()
+                    val sideCUnit = findViewById<Spinner>(R.id.spinner_side_c_unit).selectedItem.toString()
+                    val thicknessUnit = findViewById<Spinner>(R.id.spinner_thickness_triangle_unit).selectedItem.toString()
+                    val sideAInMeters = convertToMeters(sideA, sideAUnit)
+                    val sideBInMeters = convertToMeters(sideB, sideBUnit)
+                    val sideCInMeters = convertToMeters(sideC, sideCUnit)
+                    val thicknessInMeters = convertToMeters(thickness, thicknessUnit)
                     val volume = calculateTriangleVolume(sideAInMeters, sideBInMeters, sideCInMeters, thicknessInMeters)
+                    val unit = if(unitSystem == "Imperialsk") "tommer" else "cm"
                     if (volume == 0.0) "" else {
-                        val weight = calculateWeight(volume, density)
-                        String.format(Locale.ROOT, "Volum: %.2f m³\nVekt: %.0f kg", volume, weight) + if (weight >= 1000) String.format(Locale.ROOT, " (%.1f tonn)", weight / 1000) else ""
+                        val weight = calculateWeight(volume)
+                        String.format(Locale.ROOT, "Volum: %.2f m³\nVekt: %.0f kg\nSide A: %.0f %s\nSide B: %.0f %s\nSide C: %.0f %s\nTykkelse: %.0f %s", volume, weight, sideA, sideAUnit, sideB, sideBUnit, sideC, sideCUnit, thickness, thicknessUnit) + if (weight >= 1000) String.format(Locale.ROOT, " (%.1f tonn)", weight / 1000) else ""
                     }
                 } else {
                     ""
@@ -461,4 +523,4 @@ class MainActivity : AppCompatActivity() {
         }
         textResult.text = resultText
     }
-}
+} // Avsluttende krøllparentes for MainActivity-klassen
