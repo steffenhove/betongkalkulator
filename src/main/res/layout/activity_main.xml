@@ -9,6 +9,30 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/velg_tetthet"
+        android:textSize="18sp" />
+
+    <Spinner
+        android:id="@+id/spinner_density"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:entries="@array/density_options" />
+
+    <EditText
+        android:id="@+id/input_custom_density"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/custom_density_hint"
+        android:inputType="numberDecimal"
+        android:visibility="gone" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:text="Velg form:"
         android:textSize="18sp" />
 
