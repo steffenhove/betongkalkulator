@@ -30,173 +30,275 @@ class MainActivity : AppCompatActivity() {
     private lateinit var defaultPrefs: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.activity_main)
 
-        prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
-        defaultPrefs = PreferenceManager.getDefaultSharedPreferences(this)
+    prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
+    defaultPrefs = PreferenceManager.getDefaultSharedPreferences(this)
 
-        // Referanser til knapper for formvalg
-        val buttonKjerne = findViewById<Button>(R.id.button_kjerne)
-        val buttonFirkant = findViewById<Button>(R.id.button_firkant)
-        val buttonTrekant = findViewById<Button>(R.id.button_trekant)
+    // Referanser til knapper for formvalg
+    val buttonKjerne = findViewById<Button>(R.id.button_kjerne)
+    val buttonFirkant = findViewById<Button>(R.id.button_firkant)
+    val buttonTrekant = findViewById<Button>(R.id.button_trekant)
 
-        // Referanser til layout-containere for inputfelt
-        val layoutKjerne = findViewById<LinearLayout>(R.id.layout_kjerne)
-        val layoutFirkant = findViewById<LinearLayout>(R.id.layout_firkant)
-        val layoutTrekant = findViewById<LinearLayout>(R.id.layout_trekant)
+    // Referanser til layout-containere for inputfelt
+    val layoutKjerne = findViewById<LinearLayout>(R.id.layout_kjerne)
+    val layoutFirkant = findViewById<LinearLayout>(R.id.layout_firkant)
+    val layoutTrekant = findViewById<LinearLayout>(R.id.layout_trekant)
 
-        // Referanse til inputfelt for Kjerne
-        val inputDiameter = findViewById<EditText>(R.id.input_diameter)
-        val inputHeight = findViewById<EditText>(R.id.input_height)
-        val spinnerDiameterUnit = findViewById<Spinner>(R.id.spinner_diameter_unit)
-        val spinnerHeightUnit = findViewById<Spinner>(R.id.spinner_height_unit)
+    // Referanse til inputfelt for Kjerne
+    val inputDiameter = findViewById<EditText>(R.id.input_diameter)
+    val inputHeight = findViewById<EditText>(R.id.input_height)
+    val spinnerDiameterUnit = findViewById<Spinner>(R.id.spinner_diameter_unit)
+    val spinnerHeightUnit = findViewById<Spinner>(R.id.spinner_height_unit)
 
-        // Referanser til inputfelt for Firkant
-        val inputLength = findViewById<EditText>(R.id.input_length)
-        val inputWidth = findViewById<EditText>(R.id.input_width)
-        val inputThickness = findViewById<EditText>(R.id.input_thickness)
-        val spinnerLengthUnit = findViewById<Spinner>(R.id.spinner_length_unit)
-        val spinnerWidthUnit = findViewById<Spinner>(R.id.spinner_width_unit)
-        val spinnerThicknessUnit = findViewById<Spinner>(R.id.spinner_thickness_unit)
+    // Referanser til inputfelt for Firkant
+    val inputLength = findViewById<EditText>(R.id.input_length)
+    val inputWidth = findViewById<EditText>(R.id.input_width)
+    val inputThickness = findViewById<EditText>(R.id.input_thickness)
+    val spinnerLengthUnit = findViewById<Spinner>(R.id.spinner_length_unit)
+    val spinnerWidthUnit = findViewById<Spinner>(R.id.spinner_width_unit)
+    val spinnerThicknessUnit = findViewById<Spinner>(R.id.spinner_thickness_unit)
 
-        // Referanser til inputfelt for Trekant
-        val inputSideA = findViewById<EditText>(R.id.input_side_a)
-        val inputSideB = findViewById<EditText>(R.id.input_side_b)
-        val inputSideC = findViewById<EditText>(R.id.input_side_c)
-        val inputThicknessTriangle = findViewById<EditText>(R.id.input_thickness_triangle)
-        val spinnerSideAUnit = findViewById<Spinner>(R.id.spinner_side_a_unit)
-        val spinnerSideBUnit = findViewById<Spinner>(R.id.spinner_side_b_unit)
-        val spinnerSideCUnit = findViewById<Spinner>(R.id.spinner_side_c_unit)
-        val spinnerThicknessTriangleUnit = findViewById<Spinner>(R.id.spinner_thickness_triangle_unit)
+    // Referanser til inputfelt for Trekant
+    val inputSideA = findViewById<EditText>(R.id.input_side_a)
+    val inputSideB = findViewById<EditText>(R.id.input_side_b)
+    val inputSideC = findViewById<EditText>(R.id.input_side_c)
+    val inputThicknessTriangle = findViewById<EditText>(R.id.input_thickness_triangle)
+    val spinnerSideAUnit = findViewById<Spinner>(R.id.spinner_side_a_unit)
+    val spinnerSideBUnit = findViewById<Spinner>(R.id.spinner_side_b_unit)
+    val spinnerSideCUnit = findViewById<Spinner>(R.id.spinner_side_c_unit)
+    val spinnerThicknessTriangleUnit = findViewById<Spinner>(R.id.spinner_thickness_triangle_unit)
 
-        // Referanse til beregn-knappen
-        val buttonCalculate = findViewById<Button>(R.id.button_calculate)
+    // Referanse til beregn-knappen
+    val buttonCalculate = findViewById<Button>(R.id.button_calculate)
 
-        // Referanse til resultat-TextView
-        val textResult = findViewById<TextView>(R.id.text_result)
+    // Referanse til resultat-TextView
+    val textResult = findViewById<TextView>(R.id.text_result)
 
-        // Sett opp OnClickListener for hver formvalg-knapp
-        buttonKjerne.setOnClickListener {
-            layoutKjerne.visibility = View.VISIBLE
-            layoutFirkant.visibility = View.GONE
-            layoutTrekant.visibility = View.GONE
-        }
+    // Spinner for tetthet
+    val spinnerDensity = findViewById<Spinner>(R.id.spinner_density)
+    val inputCustomDensity = findViewById<EditText>(R.id.input_custom_density)
 
-        buttonFirkant.setOnClickListener {
-            layoutKjerne.visibility = View.GONE
-            layoutFirkant.visibility = View.VISIBLE
-            layoutTrekant.visibility = View.GONE
-        }
+    val unitSelectionIndex = if (defaultPrefs.getString("unit_system_preference", "Metrisk") == "Metrisk") 1 else 0 // 0 for mm (eller tommer), 1 for cm
 
-        buttonTrekant.setOnClickListener {
-            layoutKjerne.visibility = View.GONE
-            layoutFirkant.visibility = View.GONE
-            layoutTrekant.visibility = View.VISIBLE
-        }
+    // Hent lagrede verdier fra SharedPreferences
+    val savedUnit = defaultPrefs.getString("unit_system_preference", "Metrisk")
+    val savedDensity = prefs.getString("density_preference", getString(R.string.betong))
+    val savedCustomDensity = prefs.getString("custom_density", "")
 
-        buttonCalculate.setOnClickListener {
-            if (layoutKjerne.visibility == View.VISIBLE) {
-                // Kjerne-beregning
-                val diameter = inputDiameter.text.toString().toDoubleOrNull()
-                val height = inputHeight.text.toString().toDoubleOrNull()
+    // Sett standardvalg for tetthet
+    val densityAdapter = ArrayAdapter.createFromResource(
+        this,
+        R.array.density_options,
+        android.R.layout.simple_spinner_item
+    )
+    densityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+    spinnerDensity.adapter = densityAdapter
 
-                if (diameter == null || height == null) {
-                    Toast.makeText(this, "Ugyldig inndata for Kjerne", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
+    val densitySelectionIndex = resources.getStringArray(R.array.density_options).indexOf(savedDensity)
+    spinnerDensity.setSelection(densitySelectionIndex)
 
-                val diameterUnit = spinnerDiameterUnit.selectedItem.toString()
-                val heightUnit = spinnerHeightUnit.selectedItem.toString()
+    // Vis/skjul egendefinert tetthet inputfelt basert på lagret valg
+    if (savedDensity == getString(R.string.custom_density)) {
+        inputCustomDensity.visibility = View.VISIBLE
+        inputCustomDensity.setText(savedCustomDensity)
+    } else {
+        inputCustomDensity.visibility = View.GONE
+    }
 
-                val diameterInMeters = convertToMeters(diameter, diameterUnit)
-                val heightInMeters = convertToMeters(height, heightUnit)
+    // Lytt til endringer i inputfeltene og oppdater resultatet
+    val inputFields = listOf(
+        inputDiameter, inputHeight, inputLength, inputWidth, inputThickness,
+        inputSideA, inputSideB, inputSideC, inputThicknessTriangle
+    )
+    for (field in inputFields) {
+        field.addTextChangedListener { updateResult(textResult, layoutKjerne, layoutFirkant, layoutTrekant) }
+    }
 
-                val volume = calculateCylinderVolume(diameterInMeters, heightInMeters)
-                val weight = calculateWeight(volume)
-
-                val resultText = String.format(Locale.ROOT, "Volum: %.2f m³\nVekt: %.0f kg", volume, weight)
-                textResult.text = resultText
-                if (weight >= 1000) {
-                    val weightInTons = weight / 1000
-                    textResult.append(String.format(Locale.ROOT, " (%.1f tonn)", weightInTons))
-                }
-
-                // Lagre beregningen til historikk
-                val dimensions = String.format("Diameter: %.0f %s, Høyde: %.0f %s", diameter, diameterUnit, height, heightUnit)
-                saveCalculationToHistory(volume, weight, "Kjerne", dimensions)
-
-            } else if (layoutFirkant.visibility == View.VISIBLE) {
-                // Firkant-beregning
-                val length = inputLength.text.toString().toDoubleOrNull()
-                val width = inputWidth.text.toString().toDoubleOrNull()
-                val thickness = inputThickness.text.toString().toDoubleOrNull()
-
-                if (length == null || width == null || thickness == null) {
-                    Toast.makeText(this, "Ugyldig inndata for Firkant", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-
-                val lengthUnit = spinnerLengthUnit.selectedItem.toString()
-                val widthUnit = spinnerWidthUnit.selectedItem.toString()
-                val thicknessUnit = spinnerThicknessUnit.selectedItem.toString()
-
-                val lengthInMeters = convertToMeters(length, lengthUnit)
-                val widthInMeters = convertToMeters(width, widthUnit)
-                val thicknessInMeters = convertToMeters(thickness, thicknessUnit)
-
-                val volume = calculateBoxVolume(lengthInMeters, widthInMeters, thicknessInMeters)
-                val weight = calculateWeight(volume)
-
-                val resultText = String.format(Locale.ROOT, "Volum: %.2f m³\nVekt: %.0f kg", volume, weight)
-                textResult.text = resultText
-                if (weight >= 1000) {
-                    val weightInTons = weight / 1000
-                    textResult.append(String.format(Locale.ROOT, " (%.1f tonn)", weightInTons))
-                }
-
-                // Lagre beregningen til historikk
-                val dimensions = String.format("Lengde: %.0f %s, Bredde: %.0f %s, Tykkelse: %.0f %s", length, lengthUnit, width, widthUnit, thickness, thicknessUnit)
-                saveCalculationToHistory(volume, weight, "Firkant", dimensions)
-
-            } else if (layoutTrekant.visibility == View.VISIBLE) {
-                // Trekant-beregning
-                val sideA = inputSideA.text.toString().toDoubleOrNull()
-                val sideB = inputSideB.text.toString().toDoubleOrNull()
-                val sideC = inputSideC.text.toString().toDoubleOrNull()
-                val thickness = inputThicknessTriangle.text.toString().toDoubleOrNull()
-
-                if (sideA == null || sideB == null || sideC == null || thickness == null) {
-                    Toast.makeText(this, "Ugyldig inndata for Trekant", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-
-                val sideAUnit = spinnerSideAUnit.selectedItem.toString()
-                val sideBUnit = spinnerSideBUnit.selectedItem.toString()
-                val sideCUnit = spinnerSideCUnit.selectedItem.toString()
-                val thicknessUnit = spinnerThicknessTriangleUnit.selectedItem.toString()
-
-                val sideAInMeters = convertToMeters(sideA, sideAUnit)
-                val sideBInMeters = convertToMeters(sideB, sideBUnit)
-                val sideCInMeters = convertToMeters(sideC, sideCUnit)
-                val thicknessInMeters = convertToMeters(thickness, thicknessUnit)
-
-                val volume = calculateTriangleVolume(sideAInMeters, sideBInMeters, sideCInMeters, thicknessInMeters)
-                val weight = calculateWeight(volume)
-
-                val resultText = String.format(Locale.ROOT, "Volum: %.2f m³\nVekt: %.0f kg", volume, weight)
-                textResult.text = resultText
-                if (weight >= 1000) {
-                    val weightInTons = weight / 1000
-                    textResult.append(String.format(Locale.ROOT, " (%.1f tonn)", weightInTons))
-                }
-
-                // Lagre beregningen til historikk
-                val dimensions = String.format("Side A: %.0f %s, Side B: %.0f %s, Side C: %.0f %s, Tykkelse: %.0f %s", sideA, sideAUnit, sideB, sideBUnit, sideC, sideCUnit, thickness, thicknessUnit)
-                saveCalculationToHistory(volume, weight, "Trekant", dimensions)
+    // Lytt til endringer i enhetsvelgerne
+    val unitSpinners = listOf(
+        spinnerDiameterUnit, spinnerHeightUnit, spinnerLengthUnit, spinnerWidthUnit,
+        spinnerThicknessUnit, spinnerSideAUnit, spinnerSideBUnit, spinnerSideCUnit, spinnerThicknessTriangleUnit
+    )
+    for (spinner in unitSpinners) {
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updateResult(textResult, layoutKjerne, layoutFirkant, layoutTrekant)
             }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
     }
+
+    // Spinner for valg av tetthet
+    spinnerDensity.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            val selectedDensity = parent?.getItemAtPosition(position).toString()
+            if (selectedDensity == getString(R.string.custom_density)) {
+                inputCustomDensity.visibility = View.VISIBLE
+                val customDensity = prefs.getString("custom_density", "")
+                inputCustomDensity.setText(customDensity)
+            } else {
+                inputCustomDensity.visibility = View.GONE
+            }
+            updateResult(textResult, layoutKjerne, layoutFirkant, layoutTrekant)
+        }
+
+        override fun onNothingSelected(parent: AdapterView<*>?) {}
+    }
+
+    // Sett opp OnClickListener for hver formvalg-knapp
+    buttonKjerne.setOnClickListener {
+        layoutKjerne.visibility = View.VISIBLE
+        layoutFirkant.visibility = View.GONE
+        layoutTrekant.visibility = View.GONE
+        updateResult(textResult, layoutKjerne, layoutFirkant, layoutTrekant)
+    }
+
+    buttonFirkant.setOnClickListener {
+        layoutKjerne.visibility = View.GONE
+        layoutFirkant.visibility = View.VISIBLE
+        layoutTrekant.visibility = View.GONE
+        updateResult(textResult, layoutKjerne, layoutFirkant, layoutTrekant)
+    }
+
+    buttonTrekant.setOnClickListener {
+        layoutKjerne.visibility = View.GONE
+        layoutFirkant.visibility = View.GONE
+        layoutTrekant.visibility = View.VISIBLE
+        updateResult(textResult, layoutKjerne, layoutFirkant, layoutTrekant)
+    }
+
+    buttonCalculate.setOnClickListener {
+        // Hent tetthet fra spinner eller egendefinert felt
+        val density = when (spinnerDensity.selectedItem.toString()) {
+            getString(R.string.leca) -> 1800.0
+            getString(R.string.custom_density) -> inputCustomDensity.text.toString().toDoubleOrNull() ?: 2400.0
+            else -> 2400.0 // Standard for betong
+        }
+        if (layoutKjerne.visibility == View.VISIBLE) {
+            // Kjerne-beregning
+            val diameter = inputDiameter.text.toString().toDoubleOrNull()
+            val height = inputHeight.text.toString().toDoubleOrNull()
+
+            if (diameter == null || height == null) {
+                Toast.makeText(this, "Ugyldig inndata for Kjerne", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val diameterUnit = spinnerDiameterUnit.selectedItem.toString()
+            val heightUnit = spinnerHeightUnit.selectedItem.toString()
+
+            val diameterInMeters = convertToMeters(diameter, diameterUnit)
+            val heightInMeters = convertToMeters(height, heightUnit)
+
+            val volume = calculateCylinderVolume(diameterInMeters, heightInMeters)
+            val weight = calculateWeight(volume, density)
+
+            val resultText = String.format(Locale.ROOT, "Volum: %.2f m³\nVekt: %.0f kg", volume, weight)
+            textResult.text = resultText
+            if (weight >= 1000) {
+                val weightInTons = weight / 1000
+                textResult.append(String.format(Locale.ROOT, " (%.1f tonn)", weightInTons))
+            }
+
+            // Lagre beregningen til historikk
+            val dimensions = String.format("Diameter: %.0f %s, Høyde: %.0f %s", diameter, diameterUnit, height, heightUnit)
+            saveCalculationToHistory(volume, weight, "Kjerne", dimensions)
+
+        } else if (layoutFirkant.visibility == View.VISIBLE) {
+            // Firkant-beregning
+            val length = inputLength.text.toString().toDoubleOrNull()
+            val width = inputWidth.text.toString().toDoubleOrNull()
+            val thickness = inputThickness.text.toString().toDoubleOrNull()
+
+            if (length == null || width == null || thickness == null) {
+                Toast.makeText(this, "Ugyldig inndata for Firkant", Toast.LENGTH_SHORT)
+                    .show()
+                return@setOnClickListener
+            }
+
+            val lengthUnit = spinnerLengthUnit.selectedItem.toString()
+            val widthUnit = spinnerWidthUnit.selectedItem.toString()
+            val thicknessUnit = spinnerThicknessUnit.selectedItem.toString()
+
+            val lengthInMeters = convertToMeters(length, lengthUnit)
+            val widthInMeters = convertToMeters(width, widthUnit)
+            val thicknessInMeters = convertToMeters(thickness, thicknessUnit)
+
+            val volume =
+                calculateBoxVolume(lengthInMeters, widthInMeters, thicknessInMeters)
+            val weight = calculateWeight(volume, density)
+
+            val resultText =
+                String.format(Locale.ROOT, "Volum: %.2f m³\nVekt: %.0f kg", volume, weight)
+            textResult.text = resultText
+            if (weight >= 1000) {
+                val weightInTons = weight / 1000
+                textResult.append(
+                    String.format(
+                        Locale.ROOT,
+                        " (%.1f tonn)",
+                        weightInTons
+                    )
+                )
+            }
+
+            // Lagre beregningen til historikk
+            val dimensions =
+                String.format(
+                    "Lengde: %.0f %s, Bredde: %.0f %s, Tykkelse: %.0f %s",
+                    length,
+                    lengthUnit,
+                    width,
+                    widthUnit,
+                    thickness,
+                    thicknessUnit
+                )
+            saveCalculationToHistory(volume, weight, "Firkant", dimensions)
+
+        } else if (layoutTrekant.visibility == View.VISIBLE) {
+            // Trekant-beregning
+            val sideA = inputSideA.text.toString().toDoubleOrNull()
+            val sideB = inputSideB.text.toString().toDoubleOrNull()
+            val sideC = inputSideC.text.toString().toDoubleOrNull()
+            val thickness = inputThicknessTriangle.text.toString().toDoubleOrNull()
+
+            if (sideA == null || sideB == null || sideC == null || thickness == null) {
+                Toast.makeText(this, "Ugyldig inndata for Trekant", Toast.LENGTH_SHORT)
+                    .show()
+                return@setOnClickListener
+            }
+
+            val sideAUnit = spinnerSideAUnit.selectedItem.toString()
+            val sideBUnit = spinnerSideBUnit.selectedItem.toString()
+            val sideCUnit = spinnerSideCUnit.selectedItem.toString()
+            val thicknessUnit = spinnerThicknessTriangleUnit.selectedItem.toString()
+
+            val sideAInMeters = convertToMeters(sideA, sideAUnit)
+            val sideBInMeters = convertToMeters(sideB, sideBUnit)
+            val sideCInMeters = convertToMeters(sideC, sideCUnit)
+            val thicknessInMeters = convertToMeters(thickness, thicknessUnit)
+
+            val volume = calculateTriangleVolume(sideAInMeters, sideBInMeters, sideCInMeters, thicknessInMeters)
+            val weight = calculateWeight(volume, density)
+
+            val resultText = String.format(Locale.ROOT, "Volum: %.2f m³\nVekt: %.0f kg", volume, weight)
+            textResult.text = resultText
+            if (weight >= 1000) {
+                val weightInTons = weight / 1000
+                textResult.append(String.format(Locale.ROOT, " (%.1f tonn)", weightInTons))
+            }
+
+            // Lagre beregningen til historikk
+            val dimensions = String.format("Side A: %.0f %s, Side B: %.0f %s, Side C: %.0f %s, Tykkelse: %.0f %s", sideA, sideAUnit, sideB, sideBUnit, sideC, sideCUnit, thickness, thicknessUnit)
+            saveCalculationToHistory(volume, weight, "Trekant", dimensions)
+        }
+    }
+    } // Her skal de to manglende lukkende krøllparentesene være. en for `buttonCalculate.setOnClickListener` og en for `onCreate`
+
+    private fun updateResult(textResult: TextView, layoutKjerne: LinearLayout, layoutFirkant: LinearLayout, layoutTrekant:
 
     // Funksjon for å konvertere mål til meter
     private fun convertToMeters(value: Double, unit: String): Double {
