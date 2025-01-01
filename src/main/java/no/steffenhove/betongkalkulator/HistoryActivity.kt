@@ -10,7 +10,6 @@ import android.widget.AbsListView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
-import android.widget.TextView
 import android.widget.Toast
 import org.json.JSONArray
 import org.json.JSONException
@@ -98,8 +97,28 @@ class HistoryActivity : AppCompatActivity() {
             val shape = jsonObject.getString("shape")
             val dimensions = jsonObject.getString("dimensions")
             val datetime = jsonObject.optString("datetime", "Ukjent tidspunkt") // Håndterer manglende datetime
+            val unitSystem = jsonObject.optString("unitSystem", "Metrisk") // Henter enhetssystem
+            val density = jsonObject.optString("density", "Ukjent") // Henter tetthet
+            val customDensity = jsonObject.optString("custom_density", "") // Henter egendef. tetthet
 
-            historyList.add("$volume m³, $weight kg, $shape, $dimensions - $datetime")
+            // Bruk enhetssystem til å vise enheter
+            val unit = when (unitSystem) {
+                "Imperialsk" -> "tommer"
+                else -> "cm" // Standard til cm for metrisk
+            }
+
+            // Bygg opp strengen som skal vises i historikken
+            val historyItem = StringBuilder().apply {
+                append("Volum: $volume m³, Vekt: $weight kg, $shape, $dimensions\n")
+                append("Tetthet: $density")
+                if (density == "Egendefinert" && customDensity.isNotEmpty()) {
+                    append(" ($customDensity kg/m³)")
+                }
+                append(", Enhetssystem: $unitSystem\n")
+                append("Dato: $datetime")
+            }
+
+            historyList.add(historyItem.toString())
         }
 
         return historyList
@@ -133,6 +152,7 @@ class HistoryActivity : AppCompatActivity() {
 
     // Hjelpefunksjon for å konvertere historikkstrengen tilbake til et JSON objekt
     private fun convertStringToJSON(historyString: String): JSONObject? {
+        // Forbedret regex for å splitte strengen mer nøyaktig
         val regex = """([\d.]+) m³, ([\d.]+) kg, (\w+), (.*?) - (.*)""".toRegex()
         val matchResult = regex.find(historyString) ?: return null
 
