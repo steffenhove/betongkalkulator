@@ -6,6 +6,7 @@
     <string name="settings">Innstillinger</string>
     <string name="clear_history">Slett historikk</string>
     <string name="custom_density_hint">Skriv inn egendefinert tetthet i kg/m³</string>
+    <string name="velg_tetthet">Velg tetthet:</string>
 
     <string-array name="unit_options">
         <item>mm</item>
@@ -20,7 +21,7 @@
 
     <string-array name="density_options">
         <item>Betong</item>
-       <item>Leca (Lettbetong)</item>
+        <item>Leca (Lettbetong)</item>
         <item>Egendefinert</item>
     </string-array>
 
@@ -35,16 +36,16 @@
         <item>reply_all</item>
         <item>forward</item>
     </string-array>
-<string name="unit_system_title">Enhetssystem</string>
+    <string name="unit_system_title">Enhetssystem</string>
 
-<string-array name="unit_system_entries">
-    <item>Metrisk</item>
-    <item>Imperialsk</item>
-</string-array>
+    <string-array name="unit_system_entries">
+        <item>Metrisk</item>
+        <item>Imperialsk</item>
+    </string-array>
 
-<string-array name="unit_system_values">
-    <item>Metrisk</item>
-    <item>Imperialsk</item>
-</string-array>
-    
+    <string-array name="unit_system_values">
+        <item>Metrisk</item>
+        <item>Imperialsk</item>
+    </string-array>
+
 </resources>
